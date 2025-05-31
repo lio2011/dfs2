@@ -27,6 +27,7 @@ static const char* DHTNode_method_names[] = {
   "/dht.DHTNode/FindNode",
   "/dht.DHTNode/ReplicateChunk",
   "/dht.DHTNode/AddPeer",
+  "/dht.DHTNode/GetValue",
 };
 
 std::unique_ptr< DHTNode::Stub> DHTNode::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
@@ -41,6 +42,7 @@ DHTNode::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, c
   , rpcmethod_FindNode_(DHTNode_method_names[2], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_ReplicateChunk_(DHTNode_method_names[3], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_AddPeer_(DHTNode_method_names[4], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_GetValue_(DHTNode_method_names[5], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
 ::grpc::Status DHTNode::Stub::Ping(::grpc::ClientContext* context, const ::dht::PingRequest& request, ::dht::PingResponse* response) {
@@ -158,6 +160,29 @@ void DHTNode::Stub::async::AddPeer(::grpc::ClientContext* context, const ::dht::
   return result;
 }
 
+::grpc::Status DHTNode::Stub::GetValue(::grpc::ClientContext* context, const ::dht::GetValueRequest& request, ::dht::GetValueResponse* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::dht::GetValueRequest, ::dht::GetValueResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_GetValue_, context, request, response);
+}
+
+void DHTNode::Stub::async::GetValue(::grpc::ClientContext* context, const ::dht::GetValueRequest* request, ::dht::GetValueResponse* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::dht::GetValueRequest, ::dht::GetValueResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_GetValue_, context, request, response, std::move(f));
+}
+
+void DHTNode::Stub::async::GetValue(::grpc::ClientContext* context, const ::dht::GetValueRequest* request, ::dht::GetValueResponse* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_GetValue_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::dht::GetValueResponse>* DHTNode::Stub::PrepareAsyncGetValueRaw(::grpc::ClientContext* context, const ::dht::GetValueRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::dht::GetValueResponse, ::dht::GetValueRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_GetValue_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::dht::GetValueResponse>* DHTNode::Stub::AsyncGetValueRaw(::grpc::ClientContext* context, const ::dht::GetValueRequest& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncGetValueRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
 DHTNode::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       DHTNode_method_names[0],
@@ -209,6 +234,16 @@ DHTNode::Service::Service() {
              ::dht::AddPeerResponse* resp) {
                return service->AddPeer(ctx, req, resp);
              }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      DHTNode_method_names[5],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< DHTNode::Service, ::dht::GetValueRequest, ::dht::GetValueResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](DHTNode::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::dht::GetValueRequest* req,
+             ::dht::GetValueResponse* resp) {
+               return service->GetValue(ctx, req, resp);
+             }, this)));
 }
 
 DHTNode::Service::~Service() {
@@ -243,6 +278,13 @@ DHTNode::Service::~Service() {
 }
 
 ::grpc::Status DHTNode::Service::AddPeer(::grpc::ServerContext* context, const ::dht::AddPeerRequest* request, ::dht::AddPeerResponse* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status DHTNode::Service::GetValue(::grpc::ServerContext* context, const ::dht::GetValueRequest* request, ::dht::GetValueResponse* response) {
   (void) context;
   (void) request;
   (void) response;

@@ -70,7 +70,13 @@ class DHTNode final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::dht::AddPeerResponse>> PrepareAsyncAddPeer(::grpc::ClientContext* context, const ::dht::AddPeerRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::dht::AddPeerResponse>>(PrepareAsyncAddPeerRaw(context, request, cq));
     }
-    // <-- Add this line
+    virtual ::grpc::Status GetValue(::grpc::ClientContext* context, const ::dht::GetValueRequest& request, ::dht::GetValueResponse* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::dht::GetValueResponse>> AsyncGetValue(::grpc::ClientContext* context, const ::dht::GetValueRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::dht::GetValueResponse>>(AsyncGetValueRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::dht::GetValueResponse>> PrepareAsyncGetValue(::grpc::ClientContext* context, const ::dht::GetValueRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::dht::GetValueResponse>>(PrepareAsyncGetValueRaw(context, request, cq));
+    }
     class async_interface {
      public:
       virtual ~async_interface() {}
@@ -84,7 +90,8 @@ class DHTNode final {
       virtual void ReplicateChunk(::grpc::ClientContext* context, const ::dht::ReplicateChunkRequest* request, ::dht::ReplicateChunkResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
       virtual void AddPeer(::grpc::ClientContext* context, const ::dht::AddPeerRequest* request, ::dht::AddPeerResponse* response, std::function<void(::grpc::Status)>) = 0;
       virtual void AddPeer(::grpc::ClientContext* context, const ::dht::AddPeerRequest* request, ::dht::AddPeerResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
-      // <-- Add this line
+      virtual void GetValue(::grpc::ClientContext* context, const ::dht::GetValueRequest* request, ::dht::GetValueResponse* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void GetValue(::grpc::ClientContext* context, const ::dht::GetValueRequest* request, ::dht::GetValueResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
     };
     typedef class async_interface experimental_async_interface;
     virtual class async_interface* async() { return nullptr; }
@@ -100,6 +107,8 @@ class DHTNode final {
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::dht::ReplicateChunkResponse>* PrepareAsyncReplicateChunkRaw(::grpc::ClientContext* context, const ::dht::ReplicateChunkRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::dht::AddPeerResponse>* AsyncAddPeerRaw(::grpc::ClientContext* context, const ::dht::AddPeerRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::dht::AddPeerResponse>* PrepareAsyncAddPeerRaw(::grpc::ClientContext* context, const ::dht::AddPeerRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::dht::GetValueResponse>* AsyncGetValueRaw(::grpc::ClientContext* context, const ::dht::GetValueRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::dht::GetValueResponse>* PrepareAsyncGetValueRaw(::grpc::ClientContext* context, const ::dht::GetValueRequest& request, ::grpc::CompletionQueue* cq) = 0;
   };
   class Stub final : public StubInterface {
    public:
@@ -139,6 +148,13 @@ class DHTNode final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::dht::AddPeerResponse>> PrepareAsyncAddPeer(::grpc::ClientContext* context, const ::dht::AddPeerRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::dht::AddPeerResponse>>(PrepareAsyncAddPeerRaw(context, request, cq));
     }
+    ::grpc::Status GetValue(::grpc::ClientContext* context, const ::dht::GetValueRequest& request, ::dht::GetValueResponse* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::dht::GetValueResponse>> AsyncGetValue(::grpc::ClientContext* context, const ::dht::GetValueRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::dht::GetValueResponse>>(AsyncGetValueRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::dht::GetValueResponse>> PrepareAsyncGetValue(::grpc::ClientContext* context, const ::dht::GetValueRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::dht::GetValueResponse>>(PrepareAsyncGetValueRaw(context, request, cq));
+    }
     class async final :
       public StubInterface::async_interface {
      public:
@@ -152,6 +168,8 @@ class DHTNode final {
       void ReplicateChunk(::grpc::ClientContext* context, const ::dht::ReplicateChunkRequest* request, ::dht::ReplicateChunkResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
       void AddPeer(::grpc::ClientContext* context, const ::dht::AddPeerRequest* request, ::dht::AddPeerResponse* response, std::function<void(::grpc::Status)>) override;
       void AddPeer(::grpc::ClientContext* context, const ::dht::AddPeerRequest* request, ::dht::AddPeerResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void GetValue(::grpc::ClientContext* context, const ::dht::GetValueRequest* request, ::dht::GetValueResponse* response, std::function<void(::grpc::Status)>) override;
+      void GetValue(::grpc::ClientContext* context, const ::dht::GetValueRequest* request, ::dht::GetValueResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
      private:
       friend class Stub;
       explicit async(Stub* stub): stub_(stub) { }
@@ -173,11 +191,14 @@ class DHTNode final {
     ::grpc::ClientAsyncResponseReader< ::dht::ReplicateChunkResponse>* PrepareAsyncReplicateChunkRaw(::grpc::ClientContext* context, const ::dht::ReplicateChunkRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::dht::AddPeerResponse>* AsyncAddPeerRaw(::grpc::ClientContext* context, const ::dht::AddPeerRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::dht::AddPeerResponse>* PrepareAsyncAddPeerRaw(::grpc::ClientContext* context, const ::dht::AddPeerRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::dht::GetValueResponse>* AsyncGetValueRaw(::grpc::ClientContext* context, const ::dht::GetValueRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::dht::GetValueResponse>* PrepareAsyncGetValueRaw(::grpc::ClientContext* context, const ::dht::GetValueRequest& request, ::grpc::CompletionQueue* cq) override;
     const ::grpc::internal::RpcMethod rpcmethod_Ping_;
     const ::grpc::internal::RpcMethod rpcmethod_Store_;
     const ::grpc::internal::RpcMethod rpcmethod_FindNode_;
     const ::grpc::internal::RpcMethod rpcmethod_ReplicateChunk_;
     const ::grpc::internal::RpcMethod rpcmethod_AddPeer_;
+    const ::grpc::internal::RpcMethod rpcmethod_GetValue_;
   };
   static std::unique_ptr<Stub> NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
 
@@ -190,7 +211,7 @@ class DHTNode final {
     virtual ::grpc::Status FindNode(::grpc::ServerContext* context, const ::dht::FindNodeRequest* request, ::dht::FindNodeResponse* response);
     virtual ::grpc::Status ReplicateChunk(::grpc::ServerContext* context, const ::dht::ReplicateChunkRequest* request, ::dht::ReplicateChunkResponse* response);
     virtual ::grpc::Status AddPeer(::grpc::ServerContext* context, const ::dht::AddPeerRequest* request, ::dht::AddPeerResponse* response);
-    // <-- Add this line
+    virtual ::grpc::Status GetValue(::grpc::ServerContext* context, const ::dht::GetValueRequest* request, ::dht::GetValueResponse* response);
   };
   template <class BaseClass>
   class WithAsyncMethod_Ping : public BaseClass {
@@ -292,7 +313,27 @@ class DHTNode final {
       ::grpc::Service::RequestAsyncUnary(4, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_Ping<WithAsyncMethod_Store<WithAsyncMethod_FindNode<WithAsyncMethod_ReplicateChunk<WithAsyncMethod_AddPeer<Service > > > > > AsyncService;
+  template <class BaseClass>
+  class WithAsyncMethod_GetValue : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_GetValue() {
+      ::grpc::Service::MarkMethodAsync(5);
+    }
+    ~WithAsyncMethod_GetValue() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetValue(::grpc::ServerContext* /*context*/, const ::dht::GetValueRequest* /*request*/, ::dht::GetValueResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestGetValue(::grpc::ServerContext* context, ::dht::GetValueRequest* request, ::grpc::ServerAsyncResponseWriter< ::dht::GetValueResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(5, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  typedef WithAsyncMethod_Ping<WithAsyncMethod_Store<WithAsyncMethod_FindNode<WithAsyncMethod_ReplicateChunk<WithAsyncMethod_AddPeer<WithAsyncMethod_GetValue<Service > > > > > > AsyncService;
   template <class BaseClass>
   class WithCallbackMethod_Ping : public BaseClass {
    private:
@@ -428,7 +469,34 @@ class DHTNode final {
     virtual ::grpc::ServerUnaryReactor* AddPeer(
       ::grpc::CallbackServerContext* /*context*/, const ::dht::AddPeerRequest* /*request*/, ::dht::AddPeerResponse* /*response*/)  { return nullptr; }
   };
-  typedef WithCallbackMethod_Ping<WithCallbackMethod_Store<WithCallbackMethod_FindNode<WithCallbackMethod_ReplicateChunk<WithCallbackMethod_AddPeer<Service > > > > > CallbackService;
+  template <class BaseClass>
+  class WithCallbackMethod_GetValue : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_GetValue() {
+      ::grpc::Service::MarkMethodCallback(5,
+          new ::grpc::internal::CallbackUnaryHandler< ::dht::GetValueRequest, ::dht::GetValueResponse>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::dht::GetValueRequest* request, ::dht::GetValueResponse* response) { return this->GetValue(context, request, response); }));}
+    void SetMessageAllocatorFor_GetValue(
+        ::grpc::MessageAllocator< ::dht::GetValueRequest, ::dht::GetValueResponse>* allocator) {
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(5);
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::dht::GetValueRequest, ::dht::GetValueResponse>*>(handler)
+              ->SetMessageAllocator(allocator);
+    }
+    ~WithCallbackMethod_GetValue() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetValue(::grpc::ServerContext* /*context*/, const ::dht::GetValueRequest* /*request*/, ::dht::GetValueResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* GetValue(
+      ::grpc::CallbackServerContext* /*context*/, const ::dht::GetValueRequest* /*request*/, ::dht::GetValueResponse* /*response*/)  { return nullptr; }
+  };
+  typedef WithCallbackMethod_Ping<WithCallbackMethod_Store<WithCallbackMethod_FindNode<WithCallbackMethod_ReplicateChunk<WithCallbackMethod_AddPeer<WithCallbackMethod_GetValue<Service > > > > > > CallbackService;
   typedef CallbackService ExperimentalCallbackService;
   template <class BaseClass>
   class WithGenericMethod_Ping : public BaseClass {
@@ -511,6 +579,23 @@ class DHTNode final {
     }
     // disable synchronous version of this method
     ::grpc::Status AddPeer(::grpc::ServerContext* /*context*/, const ::dht::AddPeerRequest* /*request*/, ::dht::AddPeerResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
+  class WithGenericMethod_GetValue : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_GetValue() {
+      ::grpc::Service::MarkMethodGeneric(5);
+    }
+    ~WithGenericMethod_GetValue() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetValue(::grpc::ServerContext* /*context*/, const ::dht::GetValueRequest* /*request*/, ::dht::GetValueResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -613,6 +698,26 @@ class DHTNode final {
     }
     void RequestAddPeer(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(4, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithRawMethod_GetValue : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_GetValue() {
+      ::grpc::Service::MarkMethodRaw(5);
+    }
+    ~WithRawMethod_GetValue() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetValue(::grpc::ServerContext* /*context*/, const ::dht::GetValueRequest* /*request*/, ::dht::GetValueResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestGetValue(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(5, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -723,6 +828,28 @@ class DHTNode final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     virtual ::grpc::ServerUnaryReactor* AddPeer(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithRawCallbackMethod_GetValue : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawCallbackMethod_GetValue() {
+      ::grpc::Service::MarkMethodRawCallback(5,
+          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->GetValue(context, request, response); }));
+    }
+    ~WithRawCallbackMethod_GetValue() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetValue(::grpc::ServerContext* /*context*/, const ::dht::GetValueRequest* /*request*/, ::dht::GetValueResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* GetValue(
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
@@ -860,9 +987,36 @@ class DHTNode final {
     // replace default version of method with streamed unary
     virtual ::grpc::Status StreamedAddPeer(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::dht::AddPeerRequest,::dht::AddPeerResponse>* server_unary_streamer) = 0;
   };
-  typedef WithStreamedUnaryMethod_Ping<WithStreamedUnaryMethod_Store<WithStreamedUnaryMethod_FindNode<WithStreamedUnaryMethod_ReplicateChunk<WithStreamedUnaryMethod_AddPeer<Service > > > > > StreamedUnaryService;
+  template <class BaseClass>
+  class WithStreamedUnaryMethod_GetValue : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_GetValue() {
+      ::grpc::Service::MarkMethodStreamed(5,
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::dht::GetValueRequest, ::dht::GetValueResponse>(
+            [this](::grpc::ServerContext* context,
+                   ::grpc::ServerUnaryStreamer<
+                     ::dht::GetValueRequest, ::dht::GetValueResponse>* streamer) {
+                       return this->StreamedGetValue(context,
+                         streamer);
+                  }));
+    }
+    ~WithStreamedUnaryMethod_GetValue() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status GetValue(::grpc::ServerContext* /*context*/, const ::dht::GetValueRequest* /*request*/, ::dht::GetValueResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status StreamedGetValue(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::dht::GetValueRequest,::dht::GetValueResponse>* server_unary_streamer) = 0;
+  };
+  typedef WithStreamedUnaryMethod_Ping<WithStreamedUnaryMethod_Store<WithStreamedUnaryMethod_FindNode<WithStreamedUnaryMethod_ReplicateChunk<WithStreamedUnaryMethod_AddPeer<WithStreamedUnaryMethod_GetValue<Service > > > > > > StreamedUnaryService;
   typedef Service SplitStreamedService;
-  typedef WithStreamedUnaryMethod_Ping<WithStreamedUnaryMethod_Store<WithStreamedUnaryMethod_FindNode<WithStreamedUnaryMethod_ReplicateChunk<WithStreamedUnaryMethod_AddPeer<Service > > > > > StreamedService;
+  typedef WithStreamedUnaryMethod_Ping<WithStreamedUnaryMethod_Store<WithStreamedUnaryMethod_FindNode<WithStreamedUnaryMethod_ReplicateChunk<WithStreamedUnaryMethod_AddPeer<WithStreamedUnaryMethod_GetValue<Service > > > > > > StreamedService;
 };
 
 }  // namespace dht

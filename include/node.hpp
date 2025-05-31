@@ -22,11 +22,15 @@ using dht::ReplicateChunkResponse;
 using dht::FindNodeResponse;
 using dht::AddPeerRequest;
 using dht::AddPeerResponse;
+using dht::GetValueRequest;
+using dht::GetValueResponse;
 
 
 using namespace std;
 const int K = 20; // Max Number of nodes in the k-bucket
 const int ID_BITS=160;
+const size_t CHUNK_SIZE = 1024 * 64; // 64 KB chunk size
+
 struct PeerInfo {
     std::bitset<ID_BITS> id;
     std::string ip;
@@ -59,6 +63,7 @@ class Node : public DHTNode::Service {
     // --- gRPC server-side implementation ---
     Status Ping(ServerContext* context, const PingRequest* request, PingResponse* response) override;
     Status AddPeer(ServerContext* context, const AddPeerRequest* request, AddPeerResponse* response) override;
+    Status FindNode(ServerContext* context, const FindNodeRequest* request, FindNodeResponse* response) override;
 
     // --- gRPC client-side logic ---
     void PingPeer(const string& peer_address);
@@ -80,6 +85,11 @@ class Node : public DHTNode::Service {
     bitset<ID_BITS> getId()const;
     void printdataStore();
     string getAddress() const { return ip + ":" + port; };
+    bitset<ID_BITS> storeChunk(const std::string& chunk_data);
+    void storeManifest(const std::string& filename, const std::string& manifest);
+    std::string findDHT(const std::bitset<ID_BITS>& key);
+    void retrieveFile(const std::string& filename, const std::string& out_filename);
+    Status GetValue(ServerContext* context, const GetValueRequest* request, GetValueResponse* response) override;
 
     // Server runner
     void RunServer();

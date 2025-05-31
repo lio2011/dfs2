@@ -36,6 +36,33 @@ struct NodeIdDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 NodeIdDefaultTypeInternal _NodeId_default_instance_;
+PROTOBUF_CONSTEXPR GetValueRequest::GetValueRequest(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct GetValueRequestDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR GetValueRequestDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~GetValueRequestDefaultTypeInternal() {}
+  union {
+    GetValueRequest _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 GetValueRequestDefaultTypeInternal _GetValueRequest_default_instance_;
+PROTOBUF_CONSTEXPR GetValueResponse::GetValueResponse(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.value_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.found_)*/false
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct GetValueResponseDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR GetValueResponseDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~GetValueResponseDefaultTypeInternal() {}
+  union {
+    GetValueResponse _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 GetValueResponseDefaultTypeInternal _GetValueResponse_default_instance_;
 PROTOBUF_CONSTEXPR PingRequest::PingRequest(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.sender_)*/nullptr
@@ -172,7 +199,7 @@ struct AddPeerResponseDefaultTypeInternal {
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 AddPeerResponseDefaultTypeInternal _AddPeerResponse_default_instance_;
 }  // namespace dht
-static ::_pb::Metadata file_level_metadata_dht_2eproto[11];
+static ::_pb::Metadata file_level_metadata_dht_2eproto[13];
 static constexpr ::_pb::EnumDescriptor const** file_level_enum_descriptors_dht_2eproto = nullptr;
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_dht_2eproto = nullptr;
 
@@ -186,6 +213,21 @@ const uint32_t TableStruct_dht_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(prot
   PROTOBUF_FIELD_OFFSET(::dht::NodeId, _impl_.id_),
   PROTOBUF_FIELD_OFFSET(::dht::NodeId, _impl_.ip_),
   PROTOBUF_FIELD_OFFSET(::dht::NodeId, _impl_.port_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::dht::GetValueRequest, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::dht::GetValueRequest, _impl_.key_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::dht::GetValueResponse, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::dht::GetValueResponse, _impl_.value_),
+  PROTOBUF_FIELD_OFFSET(::dht::GetValueResponse, _impl_.found_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::dht::PingRequest, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -264,20 +306,24 @@ const uint32_t TableStruct_dht_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(prot
 };
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, -1, sizeof(::dht::NodeId)},
-  { 9, -1, -1, sizeof(::dht::PingRequest)},
-  { 16, -1, -1, sizeof(::dht::PingResponse)},
-  { 23, -1, -1, sizeof(::dht::StoreRequest)},
-  { 32, -1, -1, sizeof(::dht::StoreResponse)},
-  { 39, -1, -1, sizeof(::dht::FindNodeRequest)},
-  { 47, -1, -1, sizeof(::dht::FindNodeResponse)},
-  { 54, -1, -1, sizeof(::dht::ReplicateChunkRequest)},
-  { 63, -1, -1, sizeof(::dht::ReplicateChunkResponse)},
-  { 70, -1, -1, sizeof(::dht::AddPeerRequest)},
-  { 77, -1, -1, sizeof(::dht::AddPeerResponse)},
+  { 9, -1, -1, sizeof(::dht::GetValueRequest)},
+  { 16, -1, -1, sizeof(::dht::GetValueResponse)},
+  { 24, -1, -1, sizeof(::dht::PingRequest)},
+  { 31, -1, -1, sizeof(::dht::PingResponse)},
+  { 38, -1, -1, sizeof(::dht::StoreRequest)},
+  { 47, -1, -1, sizeof(::dht::StoreResponse)},
+  { 54, -1, -1, sizeof(::dht::FindNodeRequest)},
+  { 62, -1, -1, sizeof(::dht::FindNodeResponse)},
+  { 69, -1, -1, sizeof(::dht::ReplicateChunkRequest)},
+  { 78, -1, -1, sizeof(::dht::ReplicateChunkResponse)},
+  { 85, -1, -1, sizeof(::dht::AddPeerRequest)},
+  { 92, -1, -1, sizeof(::dht::AddPeerResponse)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
   &::dht::_NodeId_default_instance_._instance,
+  &::dht::_GetValueRequest_default_instance_._instance,
+  &::dht::_GetValueResponse_default_instance_._instance,
   &::dht::_PingRequest_default_instance_._instance,
   &::dht::_PingResponse_default_instance_._instance,
   &::dht::_StoreRequest_default_instance_._instance,
@@ -292,33 +338,37 @@ static const ::_pb::Message* const file_default_instances[] = {
 
 const char descriptor_table_protodef_dht_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n\tdht.proto\022\003dht\".\n\006NodeId\022\n\n\002id\030\001 \001(\014\022\n"
-  "\n\002ip\030\002 \001(\t\022\014\n\004port\030\003 \001(\005\"*\n\013PingRequest\022"
-  "\033\n\006sender\030\001 \001(\0132\013.dht.NodeId\"\037\n\014PingResp"
-  "onse\022\017\n\007message\030\001 \001(\t\"G\n\014StoreRequest\022\033\n"
+  "\n\002ip\030\002 \001(\t\022\014\n\004port\030\003 \001(\005\"\036\n\017GetValueRequ"
+  "est\022\013\n\003key\030\001 \001(\014\"0\n\020GetValueResponse\022\r\n\005"
+  "value\030\001 \001(\t\022\r\n\005found\030\002 \001(\010\"*\n\013PingReques"
+  "t\022\033\n\006sender\030\001 \001(\0132\013.dht.NodeId\"\037\n\014PingRe"
+  "sponse\022\017\n\007message\030\001 \001(\t\"G\n\014StoreRequest\022"
+  "\033\n\006sender\030\001 \001(\0132\013.dht.NodeId\022\013\n\003key\030\002 \001("
+  "\014\022\r\n\005value\030\003 \001(\014\"\037\n\rStoreResponse\022\016\n\006sta"
+  "tus\030\001 \001(\t\"A\n\017FindNodeRequest\022\033\n\006sender\030\001"
+  " \001(\0132\013.dht.NodeId\022\021\n\ttarget_id\030\002 \001(\014\"6\n\020"
+  "FindNodeResponse\022\"\n\rclosest_nodes\030\001 \003(\0132"
+  "\013.dht.NodeId\"P\n\025ReplicateChunkRequest\022\033\n"
   "\006sender\030\001 \001(\0132\013.dht.NodeId\022\013\n\003key\030\002 \001(\014\022"
-  "\r\n\005value\030\003 \001(\014\"\037\n\rStoreResponse\022\016\n\006statu"
-  "s\030\001 \001(\t\"A\n\017FindNodeRequest\022\033\n\006sender\030\001 \001"
-  "(\0132\013.dht.NodeId\022\021\n\ttarget_id\030\002 \001(\014\"6\n\020Fi"
-  "ndNodeResponse\022\"\n\rclosest_nodes\030\001 \003(\0132\013."
-  "dht.NodeId\"P\n\025ReplicateChunkRequest\022\033\n\006s"
-  "ender\030\001 \001(\0132\013.dht.NodeId\022\013\n\003key\030\002 \001(\014\022\r\n"
-  "\005value\030\003 \001(\014\"(\n\026ReplicateChunkResponse\022\016"
-  "\n\006status\030\001 \001(\t\"-\n\016AddPeerRequest\022\033\n\006send"
-  "er\030\001 \001(\0132\013.dht.NodeId\"!\n\017AddPeerResponse"
-  "\022\016\n\006status\030\001 \001(\t2\240\002\n\007DHTNode\022+\n\004Ping\022\020.d"
-  "ht.PingRequest\032\021.dht.PingResponse\022.\n\005Sto"
-  "re\022\021.dht.StoreRequest\032\022.dht.StoreRespons"
-  "e\0227\n\010FindNode\022\024.dht.FindNodeRequest\032\025.dh"
-  "t.FindNodeResponse\022I\n\016ReplicateChunk\022\032.d"
-  "ht.ReplicateChunkRequest\032\033.dht.Replicate"
-  "ChunkResponse\0224\n\007AddPeer\022\023.dht.AddPeerRe"
-  "quest\032\024.dht.AddPeerResponseb\006proto3"
+  "\r\n\005value\030\003 \001(\014\"(\n\026ReplicateChunkResponse"
+  "\022\016\n\006status\030\001 \001(\t\"-\n\016AddPeerRequest\022\033\n\006se"
+  "nder\030\001 \001(\0132\013.dht.NodeId\"!\n\017AddPeerRespon"
+  "se\022\016\n\006status\030\001 \001(\t2\331\002\n\007DHTNode\022+\n\004Ping\022\020"
+  ".dht.PingRequest\032\021.dht.PingResponse\022.\n\005S"
+  "tore\022\021.dht.StoreRequest\032\022.dht.StoreRespo"
+  "nse\0227\n\010FindNode\022\024.dht.FindNodeRequest\032\025."
+  "dht.FindNodeResponse\022I\n\016ReplicateChunk\022\032"
+  ".dht.ReplicateChunkRequest\032\033.dht.Replica"
+  "teChunkResponse\0224\n\007AddPeer\022\023.dht.AddPeer"
+  "Request\032\024.dht.AddPeerResponse\0227\n\010GetValu"
+  "e\022\024.dht.GetValueRequest\032\025.dht.GetValueRe"
+  "sponseb\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_dht_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_dht_2eproto = {
-    false, false, 875, descriptor_table_protodef_dht_2eproto,
+    false, false, 1014, descriptor_table_protodef_dht_2eproto,
     "dht.proto",
-    &descriptor_table_dht_2eproto_once, nullptr, 0, 11,
+    &descriptor_table_dht_2eproto_once, nullptr, 0, 13,
     schemas, file_default_instances, TableStruct_dht_2eproto::offsets,
     file_level_metadata_dht_2eproto, file_level_enum_descriptors_dht_2eproto,
     file_level_service_descriptors_dht_2eproto,
@@ -608,6 +658,434 @@ void NodeId::InternalSwap(NodeId* other) {
 
 // ===================================================================
 
+class GetValueRequest::_Internal {
+ public:
+};
+
+GetValueRequest::GetValueRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:dht.GetValueRequest)
+}
+GetValueRequest::GetValueRequest(const GetValueRequest& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  GetValueRequest* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.key_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _impl_.key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_key().empty()) {
+    _this->_impl_.key_.Set(from._internal_key(), 
+      _this->GetArenaForAllocation());
+  }
+  // @@protoc_insertion_point(copy_constructor:dht.GetValueRequest)
+}
+
+inline void GetValueRequest::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.key_){}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+  _impl_.key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+}
+
+GetValueRequest::~GetValueRequest() {
+  // @@protoc_insertion_point(destructor:dht.GetValueRequest)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void GetValueRequest::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.key_.Destroy();
+}
+
+void GetValueRequest::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void GetValueRequest::Clear() {
+// @@protoc_insertion_point(message_clear_start:dht.GetValueRequest)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.key_.ClearToEmpty();
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* GetValueRequest::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // bytes key = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
+          auto str = _internal_mutable_key();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* GetValueRequest::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:dht.GetValueRequest)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // bytes key = 1;
+  if (!this->_internal_key().empty()) {
+    target = stream->WriteBytesMaybeAliased(
+        1, this->_internal_key(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:dht.GetValueRequest)
+  return target;
+}
+
+size_t GetValueRequest::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:dht.GetValueRequest)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // bytes key = 1;
+  if (!this->_internal_key().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
+        this->_internal_key());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData GetValueRequest::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    GetValueRequest::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetValueRequest::GetClassData() const { return &_class_data_; }
+
+
+void GetValueRequest::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<GetValueRequest*>(&to_msg);
+  auto& from = static_cast<const GetValueRequest&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:dht.GetValueRequest)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (!from._internal_key().empty()) {
+    _this->_internal_set_key(from._internal_key());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void GetValueRequest::CopyFrom(const GetValueRequest& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:dht.GetValueRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool GetValueRequest::IsInitialized() const {
+  return true;
+}
+
+void GetValueRequest::InternalSwap(GetValueRequest* other) {
+  using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.key_, lhs_arena,
+      &other->_impl_.key_, rhs_arena
+  );
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata GetValueRequest::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_dht_2eproto_getter, &descriptor_table_dht_2eproto_once,
+      file_level_metadata_dht_2eproto[1]);
+}
+
+// ===================================================================
+
+class GetValueResponse::_Internal {
+ public:
+};
+
+GetValueResponse::GetValueResponse(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:dht.GetValueResponse)
+}
+GetValueResponse::GetValueResponse(const GetValueResponse& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  GetValueResponse* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.value_){}
+    , decltype(_impl_.found_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _impl_.value_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.value_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_value().empty()) {
+    _this->_impl_.value_.Set(from._internal_value(), 
+      _this->GetArenaForAllocation());
+  }
+  _this->_impl_.found_ = from._impl_.found_;
+  // @@protoc_insertion_point(copy_constructor:dht.GetValueResponse)
+}
+
+inline void GetValueResponse::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.value_){}
+    , decltype(_impl_.found_){false}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+  _impl_.value_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.value_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+}
+
+GetValueResponse::~GetValueResponse() {
+  // @@protoc_insertion_point(destructor:dht.GetValueResponse)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void GetValueResponse::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.value_.Destroy();
+}
+
+void GetValueResponse::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void GetValueResponse::Clear() {
+// @@protoc_insertion_point(message_clear_start:dht.GetValueResponse)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.value_.ClearToEmpty();
+  _impl_.found_ = false;
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* GetValueResponse::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // string value = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
+          auto str = _internal_mutable_value();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "dht.GetValueResponse.value"));
+        } else
+          goto handle_unusual;
+        continue;
+      // bool found = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.found_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* GetValueResponse::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:dht.GetValueResponse)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // string value = 1;
+  if (!this->_internal_value().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_value().data(), static_cast<int>(this->_internal_value().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "dht.GetValueResponse.value");
+    target = stream->WriteStringMaybeAliased(
+        1, this->_internal_value(), target);
+  }
+
+  // bool found = 2;
+  if (this->_internal_found() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteBoolToArray(2, this->_internal_found(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:dht.GetValueResponse)
+  return target;
+}
+
+size_t GetValueResponse::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:dht.GetValueResponse)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // string value = 1;
+  if (!this->_internal_value().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_value());
+  }
+
+  // bool found = 2;
+  if (this->_internal_found() != 0) {
+    total_size += 1 + 1;
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData GetValueResponse::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    GetValueResponse::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetValueResponse::GetClassData() const { return &_class_data_; }
+
+
+void GetValueResponse::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<GetValueResponse*>(&to_msg);
+  auto& from = static_cast<const GetValueResponse&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:dht.GetValueResponse)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (!from._internal_value().empty()) {
+    _this->_internal_set_value(from._internal_value());
+  }
+  if (from._internal_found() != 0) {
+    _this->_internal_set_found(from._internal_found());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void GetValueResponse::CopyFrom(const GetValueResponse& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:dht.GetValueResponse)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool GetValueResponse::IsInitialized() const {
+  return true;
+}
+
+void GetValueResponse::InternalSwap(GetValueResponse* other) {
+  using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.value_, lhs_arena,
+      &other->_impl_.value_, rhs_arena
+  );
+  swap(_impl_.found_, other->_impl_.found_);
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata GetValueResponse::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_dht_2eproto_getter, &descriptor_table_dht_2eproto_once,
+      file_level_metadata_dht_2eproto[2]);
+}
+
+// ===================================================================
+
 class PingRequest::_Internal {
  public:
   static const ::dht::NodeId& sender(const PingRequest* msg);
@@ -796,7 +1274,7 @@ void PingRequest::InternalSwap(PingRequest* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata PingRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_dht_2eproto_getter, &descriptor_table_dht_2eproto_once,
-      file_level_metadata_dht_2eproto[1]);
+      file_level_metadata_dht_2eproto[3]);
 }
 
 // ===================================================================
@@ -999,7 +1477,7 @@ void PingResponse::InternalSwap(PingResponse* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata PingResponse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_dht_2eproto_getter, &descriptor_table_dht_2eproto_once,
-      file_level_metadata_dht_2eproto[2]);
+      file_level_metadata_dht_2eproto[4]);
 }
 
 // ===================================================================
@@ -1284,7 +1762,7 @@ void StoreRequest::InternalSwap(StoreRequest* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata StoreRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_dht_2eproto_getter, &descriptor_table_dht_2eproto_once,
-      file_level_metadata_dht_2eproto[3]);
+      file_level_metadata_dht_2eproto[5]);
 }
 
 // ===================================================================
@@ -1487,7 +1965,7 @@ void StoreResponse::InternalSwap(StoreResponse* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata StoreResponse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_dht_2eproto_getter, &descriptor_table_dht_2eproto_once,
-      file_level_metadata_dht_2eproto[4]);
+      file_level_metadata_dht_2eproto[6]);
 }
 
 // ===================================================================
@@ -1727,7 +2205,7 @@ void FindNodeRequest::InternalSwap(FindNodeRequest* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata FindNodeRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_dht_2eproto_getter, &descriptor_table_dht_2eproto_once,
-      file_level_metadata_dht_2eproto[5]);
+      file_level_metadata_dht_2eproto[7]);
 }
 
 // ===================================================================
@@ -1912,7 +2390,7 @@ void FindNodeResponse::InternalSwap(FindNodeResponse* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata FindNodeResponse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_dht_2eproto_getter, &descriptor_table_dht_2eproto_once,
-      file_level_metadata_dht_2eproto[6]);
+      file_level_metadata_dht_2eproto[8]);
 }
 
 // ===================================================================
@@ -2197,7 +2675,7 @@ void ReplicateChunkRequest::InternalSwap(ReplicateChunkRequest* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata ReplicateChunkRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_dht_2eproto_getter, &descriptor_table_dht_2eproto_once,
-      file_level_metadata_dht_2eproto[7]);
+      file_level_metadata_dht_2eproto[9]);
 }
 
 // ===================================================================
@@ -2400,7 +2878,7 @@ void ReplicateChunkResponse::InternalSwap(ReplicateChunkResponse* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata ReplicateChunkResponse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_dht_2eproto_getter, &descriptor_table_dht_2eproto_once,
-      file_level_metadata_dht_2eproto[8]);
+      file_level_metadata_dht_2eproto[10]);
 }
 
 // ===================================================================
@@ -2593,7 +3071,7 @@ void AddPeerRequest::InternalSwap(AddPeerRequest* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata AddPeerRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_dht_2eproto_getter, &descriptor_table_dht_2eproto_once,
-      file_level_metadata_dht_2eproto[9]);
+      file_level_metadata_dht_2eproto[11]);
 }
 
 // ===================================================================
@@ -2796,7 +3274,7 @@ void AddPeerResponse::InternalSwap(AddPeerResponse* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata AddPeerResponse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_dht_2eproto_getter, &descriptor_table_dht_2eproto_once,
-      file_level_metadata_dht_2eproto[10]);
+      file_level_metadata_dht_2eproto[12]);
 }
 
 // @@protoc_insertion_point(namespace_scope)
@@ -2805,6 +3283,14 @@ PROTOBUF_NAMESPACE_OPEN
 template<> PROTOBUF_NOINLINE ::dht::NodeId*
 Arena::CreateMaybeMessage< ::dht::NodeId >(Arena* arena) {
   return Arena::CreateMessageInternal< ::dht::NodeId >(arena);
+}
+template<> PROTOBUF_NOINLINE ::dht::GetValueRequest*
+Arena::CreateMaybeMessage< ::dht::GetValueRequest >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::dht::GetValueRequest >(arena);
+}
+template<> PROTOBUF_NOINLINE ::dht::GetValueResponse*
+Arena::CreateMaybeMessage< ::dht::GetValueResponse >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::dht::GetValueResponse >(arena);
 }
 template<> PROTOBUF_NOINLINE ::dht::PingRequest*
 Arena::CreateMaybeMessage< ::dht::PingRequest >(Arena* arena) {

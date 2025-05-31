@@ -8,6 +8,14 @@ message NodeId {
   int32 port = 3;
 }
 
+message GetValueRequest {
+  bytes key = 1;
+}
+message GetValueResponse {
+  string value = 1;
+  bool found = 2;
+}
+
 message PingRequest {
   NodeId sender = 1;
 }
@@ -58,5 +66,6 @@ service DHTNode {
   rpc Store(StoreRequest) returns (StoreResponse);
   rpc FindNode(FindNodeRequest) returns (FindNodeResponse);
   rpc ReplicateChunk(ReplicateChunkRequest) returns (ReplicateChunkResponse);
-  rpc AddPeer(AddPeerRequest) returns (AddPeerResponse); // <-- Add this line
+  rpc AddPeer(AddPeerRequest) returns (AddPeerResponse);
+  rpc GetValue(GetValueRequest) returns (GetValueResponse);
 }

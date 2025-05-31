@@ -63,9 +63,47 @@ void Node::RunServer() {
 
 // --- Node logic ---
 vector<std::pair<std::string, bitset<ID_BITS>>> Node::FindNodeRPC(const std::string& peer_address, const bitset<ID_BITS>& target_id) {
-    // TODO: Implement actual gRPC FindNode call.
-    // Return vector of (address, node_id) pairs.
-    return {};
+    auto stub = DHTNode::NewStub(grpc::CreateChannel(peer_address, grpc::InsecureChannelCredentials()));
+    FindNodeRequest request;
+    NodeId* sender = request.mutable_sender();
+    sender->set_id(id.to_string());
+    sender->set_ip(ip);
+    sender->set_port(std::stoi(port));
+    // Set target_id as bytes
+    std::string target_id_str = target_id.to_string();
+    request.set_target_id(target_id_str);
+
+    FindNodeResponse response;
+    ClientContext context;
+    Status status = stub->FindNode(&context, request, &response);
+
+    vector<pair<string, bitset<ID_BITS>>> result;
+    if (status.ok()) {
+        for (const auto& node : response.closest_nodes()) {
+            bitset<ID_BITS> nid(node.id());
+            string addr = node.ip() + ":" + std::to_string(node.port());
+            result.push_back({addr, nid});
+        }
+    }
+    return result;
+}
+
+Status Node::FindNode(ServerContext* context, const FindNodeRequest* request, FindNodeResponse* response) {
+    // Get the target ID from the request
+    std::string target_id_str(reinterpret_cast<const char*>(request->target_id().data()), request->target_id().size());
+    std::bitset<ID_BITS> target_id(target_id_str);
+
+    // Find K closest nodes to the target_id
+    auto closest = findKClosestNodes(target_id);
+
+    // Fill the response with NodeId messages
+    for (const auto& peer : closest) {
+        NodeId* node = response->add_closest_nodes();
+        node->set_id(peer.id.to_string());
+        node->set_ip(peer.ip);
+        node->set_port(std::stoi(peer.port));
+    }
+    return Status::OK;
 }
 
 Status Node::AddPeer(ServerContext* context, const AddPeerRequest* request, AddPeerResponse* response) {
@@ -175,6 +213,15 @@ bitset<ID_BITS> Node::getId() const {
 void Node::addNodeToBucket(const std::bitset<ID_BITS>& node_id, const std::string& node_ip, const std::string& node_port) {
     int distance = distanceTo(node_id);
     auto& bucket = buckets[distance];
+
+    // Check if the bucket already contains the node
+    for (const auto& peer : bucket) {
+        if (peer.id == node_id && peer.ip == node_ip && peer.port == node_port) {
+            // Node already exists in this bucket
+            return;
+        }
+    }
+
     if (bucket.size() < K) {
         bucket.push_back(PeerInfo(node_id, node_ip, node_port));
     } else {
@@ -275,7 +322,9 @@ vector<PeerInfo> Node::findKClosestNodes(const bitset<ID_BITS>& key) {
 }
 
 string Node::find(const std::string& keyContent) {
-    auto it = dataStore.find(id);
+    // Convert keyContent (string of '0' and '1') to bitset
+    std::bitset<ID_BITS> key(keyContent);
+    auto it = dataStore.find(key);
     if (it != dataStore.end()) {
         return it->second;
     } else {
@@ -300,17 +349,188 @@ Status Node::ReplicateChunk(ServerContext* context, const ReplicateChunkRequest*
 }
 
 void Node::storeFile(const string& filename) {
-    ifstream file(filename);
+    ifstream file(filename, ios::binary);
     if (!file.is_open()) {
         cerr << "Error opening file: " << filename << endl;
         return;
     }
-    string content((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
-    store(content);
+
+    vector<bitset<ID_BITS>> chunk_keys;
+    size_t chunk_idx = 0;
+    while (file) {
+        vector<char> buffer(CHUNK_SIZE);
+        file.read(buffer.data(), CHUNK_SIZE);
+        streamsize bytesRead = file.gcount();
+        if (bytesRead <= 0) break;
+
+        string chunk_data(buffer.data(), bytesRead);
+
+        // Store chunk and get its key
+        bitset<ID_BITS> chunk_key = storeChunk(chunk_data);
+        chunk_keys.push_back(chunk_key);
+
+        ++chunk_idx;
+    }
     file.close();
+
+    // Store the manifest (list of chunk keys) under a file key
+    string manifest;
+    for (const auto& key : chunk_keys) {
+        manifest += key.to_string() + "\n";
+    }
+    // Use filename as the manifest key (or hash it)
+    storeManifest(filename, manifest);
+    cout << "Stored file '" << filename << "' as " << chunk_keys.size() << " chunks." << endl;
 }
+
+bitset<ID_BITS> Node::storeChunk(const string& chunk_data) {
+    unsigned char hash[SHA_DIGEST_LENGTH];
+    SHA1(reinterpret_cast<const unsigned char*>(chunk_data.c_str()), chunk_data.size(), hash);
+
+    bitset<ID_BITS> chunk_key;
+    for (int byte = 0; byte < SHA_DIGEST_LENGTH; ++byte)
+        for (int bit = 0; bit < 8; ++bit)
+            chunk_key[(SHA_DIGEST_LENGTH - 1 - byte) * 8 + bit] = (hash[byte] >> bit) & 1;
+
+    // Store locally
+    dataStore[chunk_key] = chunk_data;
+
+    // Replicate to k closest nodes using gRPC (reuse your existing logic)
+    auto closest = findKClosestNodes(chunk_key);
+    for (const auto& peer : closest) {
+        std::string peer_address = peer.ip + ":" + peer.port;
+        auto stub = DHTNode::NewStub(grpc::CreateChannel(peer_address, grpc::InsecureChannelCredentials()));
+        ReplicateChunkRequest req;
+        ReplicateChunkResponse resp;
+        grpc::ClientContext ctx;
+
+        NodeId* sender = req.mutable_sender();
+        sender->set_id(id.to_string());
+        sender->set_ip(ip);
+        sender->set_port(std::stoi(port));
+        std::string key_bytes(reinterpret_cast<const char*>(hash), SHA_DIGEST_LENGTH);
+        req.set_key(key_bytes);
+        req.set_value(chunk_data);
+
+        auto status = stub->ReplicateChunk(&ctx, req, &resp);
+        if (status.ok()) {
+            std::cout << "Replicated chunk to " << peer_address << ": " << resp.status() << std::endl;
+        } else {
+            std::cerr << "Replication failed to " << peer_address << ": " << status.error_message() << std::endl;
+        }
+    }
+    return chunk_key;
+}
+
+void Node::storeManifest(const string& filename, const string& manifest) {
+    // You can hash the filename for the manifest key, or use as-is
+    unsigned char hash[SHA_DIGEST_LENGTH];
+    SHA1(reinterpret_cast<const unsigned char*>(filename.c_str()), filename.size(), hash);
+
+    bitset<ID_BITS> manifest_key;
+    for (int byte = 0; byte < SHA_DIGEST_LENGTH; ++byte)
+        for (int bit = 0; bit < 8; ++bit)
+            manifest_key[(SHA_DIGEST_LENGTH - 1 - byte) * 8 + bit] = (hash[byte] >> bit) & 1;
+
+    dataStore[manifest_key] = manifest;
+    // Optionally replicate manifest as well
+}
+
+void Node::retrieveFile(const string& filename, const string& out_filename) {
+    // Get manifest key
+    unsigned char hash[SHA_DIGEST_LENGTH];
+    SHA1(reinterpret_cast<const unsigned char*>(filename.c_str()), filename.size(), hash);
+
+    bitset<ID_BITS> manifest_key;
+    for (int byte = 0; byte < SHA_DIGEST_LENGTH; ++byte)
+        for (int bit = 0; bit < 8; ++bit)
+            manifest_key[(SHA_DIGEST_LENGTH - 1 - byte) * 8 + bit] = (hash[byte] >> bit) & 1;
+
+    // Retrieve manifest using DHT-wide lookup
+    string manifest = findDHT(manifest_key);
+    if (manifest == "Key not found") {
+        cerr << "Manifest not found for file: " << filename << endl;
+        return;
+    }
+
+    // Parse chunk keys
+    vector<bitset<ID_BITS>> chunk_keys;
+    istringstream iss(manifest);
+    string line;
+    while (getline(iss, line)) {
+        if (!line.empty()) {
+            chunk_keys.push_back(bitset<ID_BITS>(line));
+        }
+    }
+
+    // Retrieve each chunk and write to output file
+    ofstream outfile(out_filename, ios::binary);
+    for (const auto& chunk_key : chunk_keys) {
+        string chunk = findDHT(chunk_key);
+        if (chunk == "Key not found") {
+            cerr << "Missing chunk for key: " << chunk_key << endl;
+            continue;
+        }
+        outfile.write(chunk.data(), chunk.size());
+    }
+    outfile.close();
+    cout << "File '" << out_filename << "' reconstructed from chunks." << endl;
+}
+
 void Node::printdataStore() {
     for (const auto& pair : dataStore) {
         cout << "Key: " << pair.first << ", Content: " << pair.second << endl;
     }
+}
+
+Status Node::GetValue(ServerContext* context, const GetValueRequest* request, GetValueResponse* response) {
+    // Convert bytes to bitset
+    bitset<ID_BITS> key;
+    for (size_t i = 0; i < request->key().size() && i < ID_BITS/8; ++i) {
+        for (int b = 0; b < 8; ++b) {
+            key[(request->key().size() - 1 - i) * 8 + b] = (request->key()[i] >> b) & 1;
+        }
+    }
+    auto it = dataStore.find(key);
+    if (it != dataStore.end()) {
+        response->set_value(it->second);
+        response->set_found(true);
+    } else {
+        response->set_found(false);
+    }
+    return Status::OK;
+}
+
+std::string Node::findDHT(const std::bitset<ID_BITS>& key) {
+    auto it = dataStore.find(key);
+    if (it != dataStore.end()) {
+        return it->second;
+    }
+
+    // Not found locally, ask K closest nodes
+    auto closest = findKClosestNodes(key);
+    for (const auto& peer : closest) {
+        std::string peer_address = peer.ip + ":" + peer.port;
+        auto stub = DHTNode::NewStub(grpc::CreateChannel(peer_address, grpc::InsecureChannelCredentials()));
+        GetValueRequest req;
+        GetValueResponse resp;
+        grpc::ClientContext ctx;
+
+        // Convert bitset to raw bytes
+        std::string key_bytes;
+        for (int i = 0; i < ID_BITS; i += 8) {
+            unsigned char byte = 0;
+            for (int b = 0; b < 8 && (i + b) < ID_BITS; ++b) {
+                if (key[i + b]) byte |= (1 << (7 - b));
+            }
+            key_bytes.push_back(byte);
+        }
+        req.set_key(key_bytes);
+
+        auto status = stub->GetValue(&ctx, req, &resp);
+        if (status.ok() && resp.found()) {
+            return resp.value();
+        }
+    }
+    return "Key not found";
 }
