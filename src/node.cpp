@@ -423,7 +423,7 @@ bitset<ID_BITS> Node::storeChunk(const string& chunk_data) {
 }
 
 void Node::storeManifest(const string& filename, const string& manifest) {
-    // You can hash the filename for the manifest key, or use as-is
+    // Hash the filename for the manifest key
     unsigned char hash[SHA_DIGEST_LENGTH];
     SHA1(reinterpret_cast<const unsigned char*>(filename.c_str()), filename.size(), hash);
 
@@ -432,8 +432,33 @@ void Node::storeManifest(const string& filename, const string& manifest) {
         for (int bit = 0; bit < 8; ++bit)
             manifest_key[(SHA_DIGEST_LENGTH - 1 - byte) * 8 + bit] = (hash[byte] >> bit) & 1;
 
+    // Store locally
     dataStore[manifest_key] = manifest;
-    // Optionally replicate manifest as well
+
+    // Replicate to k closest nodes
+    auto closest = findKClosestNodes(manifest_key);
+    for (const auto& peer : closest) {
+        std::string peer_address = peer.ip + ":" + peer.port;
+        auto stub = DHTNode::NewStub(grpc::CreateChannel(peer_address, grpc::InsecureChannelCredentials()));
+        ReplicateChunkRequest req;
+        ReplicateChunkResponse resp;
+        grpc::ClientContext ctx;
+
+        NodeId* sender = req.mutable_sender();
+        sender->set_id(id.to_string());
+        sender->set_ip(ip);
+        sender->set_port(std::stoi(port));
+        std::string key_bytes(reinterpret_cast<const char*>(hash), SHA_DIGEST_LENGTH);
+        req.set_key(key_bytes);
+        req.set_value(manifest);
+
+        auto status = stub->ReplicateChunk(&ctx, req, &resp);
+        if (status.ok()) {
+            std::cout << "Replicated manifest to " << peer_address << ": " << resp.status() << std::endl;
+        } else {
+            std::cerr << "Manifest replication failed to " << peer_address << ": " << status.error_message() << std::endl;
+        }
+    }
 }
 
 void Node::retrieveFile(const string& filename, const string& out_filename) {
