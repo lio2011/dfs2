@@ -1,9 +1,13 @@
 #include"../include/node.hpp"
 #include<bits/stdc++.h>
 #include<openssl/sha.h>
+
 using namespace std;
 
-Node::Node(const std::string& input) {
+// --- Node constructor ---
+Node::Node(const std::string& input_ip, const std::string& input_port) : ip(input_ip), port(input_port) {
+    address_ = input_ip + ":" + input_port;
+    string input=address_;
     unsigned char hash[SHA_DIGEST_LENGTH]; // SHA_DIGEST_LENGTH == 20 bytes == 160 bits
     SHA1(reinterpret_cast<const unsigned char*>(input.c_str()), input.size(), hash);
 
@@ -15,10 +19,149 @@ Node::Node(const std::string& input) {
     }
 }
 
-int Node::distanceTo(const Node& other) const {
+// --- gRPC server-side implementation ---
+Status Node::Ping(ServerContext* context, const PingRequest* request, PingResponse* response) {
+    cout<<"Server Side------"<<endl;
+    cout << "Received ping from: " << request->sender().ip() <<":"<<request->sender().port() << endl;
+    response->set_message("Ping received by " + address_);
+    cout<<"------"<<endl;
+    return Status::OK;
+}
+
+// --- gRPC client-side logic ---
+
+
+void Node::PingPeer(const string& peer_address) {
+    auto stub = DHTNode::NewStub(grpc::CreateChannel(peer_address, grpc::InsecureChannelCredentials()));
+    PingRequest request;
+    NodeId* sender = request.mutable_sender();
+    sender->set_id(id.to_string());
+    sender->set_ip(ip);
+    sender->set_port(stoi(port));
+
+    PingResponse response;
+    ClientContext context;
+    Status status = stub->Ping(&context, request, &response);
+    cout<<"Client Side------"<<endl;
+    if (status.ok()) {
+        cout << "Ping response: " << response.message() << endl;
+    } else {
+        cerr << "RPC failed: " << status.error_message() << endl;
+    }
+    cout<<"------"<<endl;
+}
+
+// --- Run the gRPC server ---
+void Node::RunServer() {
+    ServerBuilder builder;
+    builder.AddListeningPort(address_, grpc::InsecureServerCredentials());
+    builder.RegisterService(this);
+    unique_ptr<Server> server(builder.BuildAndStart());
+    cout << "Server listening on " << address_ << endl;
+    server->Wait();
+}
+
+// --- Node logic ---
+vector<std::pair<std::string, bitset<ID_BITS>>> Node::FindNodeRPC(const std::string& peer_address, const bitset<ID_BITS>& target_id) {
+    // TODO: Implement actual gRPC FindNode call.
+    // Return vector of (address, node_id) pairs.
+    return {};
+}
+
+Status Node::AddPeer(ServerContext* context, const AddPeerRequest* request, AddPeerResponse* response) {
+    const auto& sender = request->sender();
+
+    // Convert sender.id() (string of '0' and '1') to bitset
+    std::bitset<ID_BITS> peer_id(sender.id());
+    std::string peer_ip = sender.ip();
+    std::string peer_port = std::to_string(sender.port());
+
+    addNodeToBucket(peer_id, peer_ip, peer_port);
+    response->set_status("OK");
+    return Status::OK;
+}
+
+void Node::AddPeerToRemote(const std::string& peer_address) {
+    auto stub = DHTNode::NewStub(grpc::CreateChannel(peer_address, grpc::InsecureChannelCredentials()));
+    AddPeerRequest request;
+    NodeId* sender = request.mutable_sender();
+    sender->set_id(id.to_string());
+    sender->set_ip(ip);
+    sender->set_port(std::stoi(port));
+
+    AddPeerResponse response;
+    ClientContext context;
+    Status status = stub->AddPeer(&context, request, &response);
+    if (status.ok()) {
+        std::cout << "AddPeer to " << peer_address << ": " << response.status() << std::endl;
+    } else {
+        std::cerr << "AddPeer RPC failed to " << peer_address << ": " << status.error_message() << std::endl;
+    }
+}
+
+void Node::bootstrap(const std::string& bootstrap_ip, int bootstrap_port) {
+    string bootstrap_address = bootstrap_ip + ":" + std::to_string(bootstrap_port);
+
+    set<bitset<ID_BITS>, BitsetLess> seen;
+    queue<pair<string, bitset<ID_BITS>>> to_visit;
+
+    // Start with the bootstrap node (ID unknown at first)
+    to_visit.push({bootstrap_address, bitset<ID_BITS>()});
+
+    //Add bootstrap node to the bucket if possible
+    if (bootstrap_address != this->getAddress()) {
+        // Get the bootstrap node's ID by hashing its address (same as Node constructor)
+        string input = bootstrap_address;
+        unsigned char hash[SHA_DIGEST_LENGTH];
+        SHA1(reinterpret_cast<const unsigned char*>(input.c_str()), input.size(), hash);
+        bitset<ID_BITS> bootstrap_id;
+        for (int byte = 0; byte < SHA_DIGEST_LENGTH; ++byte) {
+            for (int bit = 0; bit < 8; ++bit) {
+                bootstrap_id[(SHA_DIGEST_LENGTH - 1 - byte) * 8 + bit] = (hash[byte] >> bit) & 1;
+            }
+        }
+        addNodeToBucket(bootstrap_id, bootstrap_ip, std::to_string(bootstrap_port));
+    }
+
+    while (!to_visit.empty() && buckets.size() < ID_BITS) {
+        auto [peer_address, peer_id] = to_visit.front();
+        to_visit.pop();
+
+        // --- Add self to this peer's bucket if local (for testing) ---
+        AddPeerToRemote(peer_address);
+
+        // Skip if already seen
+        if (seen.count(peer_id)) continue;
+        seen.insert(peer_id);
+
+        // Ping the peer to check if alive
+        PingPeer(peer_address);
+
+        // FindNode: ask this peer for nodes close to our ID
+        auto found_nodes = FindNodeRPC(peer_address, id);
+
+        for (const auto& [found_addr, found_id] : found_nodes) {
+            if (found_id != id && !seen.count(found_id)) {
+                // Split found_addr into ip and port
+                auto pos = found_addr.find(':');
+                string found_ip = found_addr.substr(0, pos);
+                string found_port = found_addr.substr(pos + 1);
+
+                addNodeToBucket(found_id, found_ip, found_port);
+
+                // Add to queue for further traversal
+                to_visit.push({found_addr, found_id});
+            }
+        }
+    }
+
+    std::cout << "Bootstrapping complete. Buckets filled: " << buckets.size() << std::endl;
+}
+
+int Node::distanceTo(const bitset<ID_BITS>& found_id) const {
     int distance = 0;
     for (int i = 0; i < ID_BITS; ++i) {
-        if (id[i] != other.id[i]) {
+        if (id[i] != found_id[i]) {
             ++distance;
         }
     }
@@ -29,11 +172,11 @@ bitset<ID_BITS> Node::getId() const {
     return id;
 }
 
-void Node::addNodeToBucket( Node& node){
-    int distance = distanceTo(node);
-    auto& bucket = buckets[distance]; // This will create the vector if it doesn't exist
+void Node::addNodeToBucket(const std::bitset<ID_BITS>& node_id, const std::string& node_ip, const std::string& node_port) {
+    int distance = distanceTo(node_id);
+    auto& bucket = buckets[distance];
     if (bucket.size() < K) {
-        bucket.push_back(&node);
+        bucket.push_back(PeerInfo(node_id, node_ip, node_port));
     } else {
         std::cout << "Bucket full, cannot add node." << std::endl;
     }
@@ -42,18 +185,19 @@ void Node::addNodeToBucket( Node& node){
 void Node::printBuckets() {
     for (const auto& bucket : buckets) {
         std::cout << "Distance: " << bucket.first << " -> ";
-        for (const auto& nodePtr : bucket.second) {
-            std::cout << nodePtr->getId() << " ";
+        for (const auto& peer : bucket.second) {
+            std::cout << "[" << peer.id << ", " << peer.ip << ", " << peer.port << "] ";
         }
         std::cout << std::endl;
     }
 }
 
-void Node::removeNodeFromBucket( Node& node) {
+void Node::removeNodeFromBucket( bitset<ID_BITS>& nodeId, const string& nodeAddress) {
     // if node is not responding to ping, then remove it from the bucket
-    int distance = distanceTo(node);
+    int distance = distanceTo(nodeId);
     auto& bucket = buckets[distance];
-    auto it = std::find(bucket.begin(), bucket.end(), &node);
+    auto it = std::find_if(bucket.begin(), bucket.end(),
+    [&](const PeerInfo& peer) { return peer.id == nodeId; });
     if (it != bucket.end()) {
         bucket.erase(it);
     } else {
@@ -72,35 +216,56 @@ void Node::store(const std::string& content) {
 
     // Store locally
     dataStore[key] = content;
-    // Replicate to k closest nodes
+
+    // Replicate to k closest nodes using gRPC
     auto closest = findKClosestNodes(key);
-    for (Node* neighbor : closest) {
-        neighbor->replicateChunk(key, content);
-    }
+    for (const auto& peer : closest) {
+        std::string peer_address = peer.ip + ":" + peer.port;
 
-}
+        // Create a gRPC stub for the peer
+        auto stub = DHTNode::NewStub(grpc::CreateChannel(peer_address, grpc::InsecureChannelCredentials()));
 
-// Node* Node::findNodeById(const bitset<ID_BITS>& id) {
-//     for (const auto& bucket : buckets) {
-//         for (const auto& nodePtr : bucket.second) {
-//             if (nodePtr->getId()== id) {
-//                 return this; // Return the current node if found
-//             }
-//         }
-//     }
-//     return nullptr; // Not found
-// }
+        // Prepare ReplicateChunkRequest
+        ReplicateChunkRequest req;
+        ReplicateChunkResponse resp;
+        grpc::ClientContext ctx;
 
-vector<Node*> Node::findKClosestNodes(const bitset<ID_BITS>& key) {
-    vector<Node*> closestNodes;
-    for (const auto& bucket : buckets) {
-        for (const auto& nodePtr : bucket.second) {
-                closestNodes.push_back(nodePtr);
+        NodeId* sender = req.mutable_sender();
+        sender->set_id(id.to_string());
+        sender->set_ip(ip);
+        sender->set_port(std::stoi(port));
+        // Set key as bytes
+        std::string key_bytes(reinterpret_cast<const char*>(hash), SHA_DIGEST_LENGTH);
+        req.set_key(key_bytes);
+        req.set_value(content);
+
+        // Call ReplicateChunk RPC
+        auto status = stub->ReplicateChunk(&ctx, req, &resp);
+        if (status.ok()) {
+            std::cout << "Replicated chunk to " << peer_address << ": " << resp.status() << std::endl;
+        } else {
+            std::cerr << "Replication failed to " << peer_address << ": " << status.error_message() << std::endl;
         }
     }
-    // Sort by distance to the key
-    sort(closestNodes.begin(), closestNodes.end(), [&](Node* a, Node* b) {
-        return distanceTo(*a) < distanceTo(*b);
+}
+
+vector<PeerInfo> Node::findKClosestNodes(const bitset<ID_BITS>& key) {
+    vector<PeerInfo> closestNodes;
+    for (const auto& bucket : buckets) {
+        for (const auto& peer : bucket.second) {
+            closestNodes.push_back(peer);
+        }
+    }
+    // Sort by XOR distance to the key
+    sort(closestNodes.begin(), closestNodes.end(), [&](const PeerInfo& a, const PeerInfo& b) {
+        bitset<ID_BITS> dist_a = a.id ^ key;
+        bitset<ID_BITS> dist_b = b.id ^ key;
+        // Compare as unsigned long long (for large bitsets, you may need a custom comparator)
+        for (int i = ID_BITS - 1; i >= 0; --i) {
+            if (dist_a[i] != dist_b[i])
+                return dist_a[i] < dist_b[i];
+        }
+        return false;
     });
     // Return the k closest nodes
     if (closestNodes.size() > K) {
@@ -118,12 +283,20 @@ string Node::find(const std::string& keyContent) {
     }
 }
 
-void Node::replicateChunk(const bitset<ID_BITS>& key, const string& content) {
-    // Example implementation: store the content in the dataStore
-    dataStore[key] = content;
-    cout<<"--Replicating chunk--"<<endl;
-    cout<<"storing in node with id: "<<id<<endl;
-    
+Status Node::ReplicateChunk(ServerContext* context, const ReplicateChunkRequest* request, ReplicateChunkResponse* response) {
+    // Store the chunk in the local dataStore
+    string value(reinterpret_cast<const char*>(request->value().data()), request->value().size());
+    bitset<ID_BITS> key;
+    // Convert bytes to bitset
+    for (size_t i = 0; i < request->key().size() && i < ID_BITS/8; ++i) {
+        for (int b = 0; b < 8; ++b) {
+            key[(request->key().size() - 1 - i) * 8 + b] = (request->key()[i] >> b) & 1;
+        }
+    }
+    dataStore[key] = value;
+    response->set_status("OK");
+    cout << "Replicated chunk stored for key: " << key << endl;
+    return Status::OK;
 }
 
 void Node::storeFile(const string& filename) {
