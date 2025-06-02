@@ -56,6 +56,9 @@ class Node : public DHTNode::Service {
     string ip;
     string port;
     string address_; // Address of the node
+    int interval_seconds = 5; // Interval for periodic tasks in seconds
+    atomic<bool> running{true};
+    std::unique_ptr<Server> server;
 
     public:
     Node(const string& ip, const string& port);
@@ -68,6 +71,7 @@ class Node : public DHTNode::Service {
     // --- gRPC client-side logic ---
     void PingPeer(const string& peer_address);
     void AddPeerToRemote(const std::string& peer_address);
+    void periodicBucketRefresh();
 
     // Node logic
     vector<std::pair<std::string, bitset<ID_BITS>>> FindNodeRPC(const string& peer_address, const bitset<ID_BITS>& target_id);
@@ -91,6 +95,8 @@ class Node : public DHTNode::Service {
     void retrieveFile(const std::string& filename, const std::string& out_filename);
     Status GetValue(ServerContext* context, const GetValueRequest* request, GetValueResponse* response) override;
 
+
     // Server runner
     void RunServer();
+    void stop();
 };
