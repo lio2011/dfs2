@@ -22,12 +22,13 @@ This project is a simulation of a Distributed Hash Table (DHT)-based file storag
 
 ## Build Instructions
 
-1. **Install dependencies:**  
+1. **Install dependencies (Not required if you execute docker directly):**  
    - C++17 compiler (e.g., g++ or clang++)
    - CMake (>= 3.10)
    - Clang
    - Ninja
    - OpenSSL development libraries
+   - protoc (to generate protoc files for grpc, which are already added for ease in ```/include```)
 
 2. **Build the project:**
    ```bash
