@@ -42,6 +42,48 @@ This project is a simulation of a Distributed Hash Table (DHT)-based file storag
    ./main_exec
    ```
 
+## Data Directory for File Operations
+
+All file operations (store/retrieve) are performed relative to a `data` directory in your project root.  
+**Always place files you want to store in the DHT inside the `data` folder.**  
+When retrieving files, specify the output path as `data/<outfile>`.
+
+### Why?
+- This ensures portability and makes it easy to use with Docker or on any system.
+- When running in Docker, you can mount the `data` directory as a volume for real-time file sharing between your host and the container.
+
+### Example Workflow with Docker
+
+1. **Prepare your file:**  
+   Place `test.txt` in the `data` directory:
+   ```
+   cp /path/to/your/test.txt ./data/
+   ```
+
+2. **Store the file using the CLI:**  
+   ```
+   store 2 /app/data/test.txt
+   ```
+   The file will be fetched from data folder in the project which is mounted in docker at /app/. .Hence /app/data/test.txt
+
+3. **Retrieve the file using the CLI:**  
+   ```
+   retrieve 3 /app/data/test.txt /app/data/result.txt
+   ```
+   The retrieved file will appear as `./data/result.txt`. You can view this file in real time.
+
+### Docker Usage
+
+When running in Docker, mount the `data` directory as a volume:
+```bash
+docker run --rm -it -p 50051-50060:50051-50060 -v ${PWD}/data:/app/data dht-cpp-app
+```
+- Inside the container, use `/app/data/filename` for file paths.
+- Any changes in `./data` on your host are instantly visible in the container and vice versa.
+- the ```-p 50051-50060:50051-50060``` exposes all ports in the range and maps them to your real machine, so that you can create new nodes in that range. The range can be extended as per requirement.
+
+---
+
 ## Usage
 
 When you run the program, you get an interactive prompt.  
