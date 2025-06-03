@@ -2,3 +2,7 @@ build/
 .vscode/
 *.swp
 *.swo
+include/dht.grpc.pb.cc
+include/dht.grpc.pb.h
+include/dht.pb.cc
+include/dht.pb.h

@@ -1,7 +1,5 @@
-# Use an official Ubuntu base image
-FROM ubuntu:24.04
+FROM ubuntu:22.04
 
-# Install dependencies
 RUN apt-get update && \
     apt-get install -y \
         build-essential \
@@ -15,27 +13,32 @@ RUN apt-get update && \
         protobuf-compiler \
         libprotobuf-dev \
         libprotoc-dev \
-        libgrpc++-dev \
-        grpc-proto \
-        libgrpc-dev \
-        python3-pip
+        ca-certificates
 
-# Install grpcio-tools for proto generation (optional, if you want to generate from .proto in container)
-RUN pip3 install grpcio-tools
+# Build and install gRPC (and its dependencies) from source
+RUN git clone --recurse-submodules -b v1.48.0 https://github.com/grpc/grpc.git /tmp/grpc && \
+    cd /tmp/grpc && \
+    mkdir -p build && cd build && \
+    cmake -DgRPC_BUILD_TESTS=OFF -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ .. && \
+    make -j$(nproc) && \
+    make install && \
+    ldconfig && \
+    cd / && rm -rf /tmp/grpc
 
-# Set workdir
 WORKDIR /app
 
-# Copy source code
 COPY . .
 
-# Build the project
+# Generate C++ sources from proto using the in-container protoc
+RUN protoc -I./include ./include/dht.proto \
+    --cpp_out=./include \
+    --grpc_out=./include \
+    --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin
+
 RUN mkdir -p build && cd build && \
     cmake -G Ninja .. -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ && \
     ninja
 
-# Expose a range of ports for nodes (adjust as needed)
 EXPOSE 50051-50060
 
-# Default command: run the CLI
 CMD ["./build/main_exec"]
